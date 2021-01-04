@@ -1,0 +1,26 @@
+#myCanvas{	
+	background: url("../images/grass.png") repeat;
+	height:900px;
+	width: 1600px;
+}
+
+/* Set all images to 1x1 px to minimize their profile on the screen */
+img
+{
+	visibility: hidden;
+	width:1px;
+	height:1px;
+}
+
+/* Little bit of a hack here since the track 
+  is renderd differently than the roads. This 
+  width should be the default width of the image
+  so we override the img css with this.
+ */
+#track{
+	width:321px;
+}
+
+#trainLeft, #trainRight{
+	width:1000px;
+}
