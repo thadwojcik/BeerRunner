@@ -22,7 +22,7 @@ function vehicle(img,x, y, width, speed){
 	this.offscreen = false;
 		
 	this.draw = function(){
-		//if within the frame then draw away
+		//if within the 'game board' then draw away  
 		if((speed > 0 && this.x < c.width)
 			 || (speed < 0 && this.x+img.width > 0)){
 				ctx.beginPath();
