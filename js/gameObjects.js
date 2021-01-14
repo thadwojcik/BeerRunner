@@ -37,7 +37,7 @@ function vehicle(img,x, y, width, speed){
 }
 
 /******************************
- * booze object - maintains state of the various vehicles and renders them on the page 
+ * booze object - maintains state of the various boozes and renders them on the page 
  * img: the image to renders
  * x: initial x position
  * y: initial y position
