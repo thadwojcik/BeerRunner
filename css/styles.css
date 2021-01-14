@@ -21,6 +21,10 @@ img
 	width:321px;
 }
 
+/* another Little bit of a hack - This 
+  width should be the default width of the train 
+  image so we override the img css with this.
+ */
 #trainLeft, #trainRight{
 	width:1000px;
 }

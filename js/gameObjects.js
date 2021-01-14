@@ -22,7 +22,7 @@ function vehicle(img,x, y, width, speed){
 	this.offscreen = false;
 		
 	this.draw = function(){
-		//if within the frame then draw away
+		//if within the 'game board' then draw away  
 		if((speed > 0 && this.x < c.width)
 			 || (speed < 0 && this.x+img.width > 0)){
 				ctx.beginPath();
@@ -37,7 +37,7 @@ function vehicle(img,x, y, width, speed){
 }
 
 /******************************
- * booze object - maintains state of the various vehicles and renders them on the page 
+ * booze object - maintains state of the various boozes and renders them on the page 
  * img: the image to renders
  * x: initial x position
  * y: initial y position
