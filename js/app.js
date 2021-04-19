@@ -4,15 +4,18 @@ Depends on gameObjects.js
 
 **********************************/
 
-var c = document.getElementById("myCanvas");
-c.width = window.innerWidth;
-c.height = window.innerHeight;
-var ctx = c.getContext("2d");
+var globalCanvas = document.getElementById("myCanvas");
+globalCanvas.width = window.innerWidth;
+globalCanvas.height = window.innerHeight;
+var globalContext = globalCanvas.getContext("2d");
 
 const ROADWIDTH = 100;
 
 
 // initialize sprites
+var spriteLeftFacing = document.getElementById("spriteLeftFacing");
+var spriteRightFacing = document.getElementById("spriteRightFacing");
+
 var teslaImgRight = document.getElementById("teslaRight");
 var chevyImgRight = document.getElementById("chevyRight"); 
 var jeepImgRight = document.getElementById("jeepRight");
@@ -38,7 +41,7 @@ var track = document.getElementById("track");
 var positions = new roadPositions();
 var boozePositions = new boozePositions();
 
-var myCharacter = new character(document.getElementById("character"),getRndInteger(0,c.width),getRndInteger(0,c.height));
+var myCharacter = new character(document.getElementById("spriteLeftFacing"),document.getElementById("spriteRightFacing"),500,500);
 
 
 /**************************************
@@ -46,103 +49,135 @@ var myCharacter = new character(document.getElementById("character"),getRndInteg
  *************************************/
 window.addEventListener("keydown", function(e) {
     const keyName = e.key;
-	const speed = 3;  
-	
+	const hSpeed = 7; // horizontal speed
+	const vSpeed = 4; // vertical speed
+
 	// space and arrow keys
-    if([32, 37, 38, 39, 40].indexOf(e.keyCode) > -1) {
+    if(["ArrowLeft", "ArrowRight", "ArrowUp", "ArrowDown", " "].indexOf(e.key) > -1) {
         e.preventDefault();
     }	
-  if(keyName == "ArrowLeft")
-	myCharacter.x-=speed;
-  if(keyName == "ArrowRight")
-	myCharacter.x+=speed;
-  if(keyName == "ArrowUp")
-	myCharacter.y-=speed;
-  if(keyName == "ArrowDown")
-	myCharacter.y+=speed;
+  if(keyName == "ArrowLeft"){
+	if(myCharacter.direction != "left"){
+		myCharacter.direction = "left";
+		myCharacter.currentFrameIndex = 0;
+	}
+	else{		
+		myCharacter.currentFrameIndex++;
+	}
+
+	if(myCharacter.x<=0){
+		myCharacter.x=0;
+	}
+	else{
+		myCharacter.x-=hSpeed;
+	}			
+  }
+  if(keyName == "ArrowRight"){
+	if(myCharacter.direction != "right"){
+		myCharacter.direction = "right";
+		myCharacter.currentFrameIndex = 0;
+	}
+	else{		
+		myCharacter.currentFrameIndex++;
+	}
+
+	var foo = myCharacter.getFrameWidth();
+	if((myCharacter.x + myCharacter.getFrameWidth())>=globalCanvas.width){
+		// intentionally left blank to be consistent with coding in the "ArrowLeft" if block
+	}
+	else{
+		myCharacter.x+=hSpeed;
+	}	
+  }
+  if(keyName == "ArrowUp"){
+	myCharacter.y-=vSpeed;
+	myCharacter.currentFrameIndex++;
+
+	if(myCharacter.y<=0){
+		myCharacter.y=0;
+	}
+	else{
+		myCharacter.y-=vSpeed;
+	}
+  }
+  if(keyName == "ArrowDown"){
+	myCharacter.y+=vSpeed;
+	myCharacter.currentFrameIndex++;
+	
+	var bar = myCharacter.y + myCharacter.getFrameHeight();
+	if((myCharacter.y + myCharacter.getFrameHeight())>=globalCanvas.height){
+		myCharacter.y=globalCanvas.height - myCharacter.getFrameHeight();
+	}
+	else{
+		myCharacter.y+=vSpeed;
+	}
+  }
 }, false);
 
  
-// document.addEventListener('keydown', (event) => {
-  // const keyName = event.key;
-  
-  // if(keyName == "ArrowLeft")
-	// myCharacter.x--;
-  // if(keyName == "ArrowRight")
-	// myCharacter.x++;
-  // if(keyName == "ArrowUp")
-	// myCharacter.y--;
-  // if(keyName == "ArrowDown")
-	// myCharacter.y++;
-	
-// }, false);
-
-// document.addEventListener('keyup', (event) => {
-  // const keyName = event.key;
-
-  // // As the user releases the Ctrl key, the key is no longer active,
-  // // so event.ctrlKey is false.
-  // if (keyName === 'Control') {
-    // alert('Control key was released');
-  // }
-// }, false);
-
-var test = 0;
-
 /******************************
  * main game loop
 */
 function animate(){
 	requestAnimationFrame(animate);
-	ctx.clearRect(0,0,innerWidth,innerHeight);
+	globalContext.clearRect(0,0,innerWidth,innerHeight);
 	
-	ctx.drawImage(road,0,positions.roadY0,window.innerWidth,ROADWIDTH);
+	globalContext.drawImage(road,0,positions.roadY0,window.innerWidth,ROADWIDTH);
 	drawTrack();
-	ctx.drawImage(road,0,positions.roadY1,window.innerWidth,ROADWIDTH);
-	ctx.drawImage(road,0,positions.roadY2,window.innerWidth,ROADWIDTH);		
+	globalContext.drawImage(road,0,positions.roadY1,window.innerWidth,ROADWIDTH);
+	globalContext.drawImage(road,0,positions.roadY2,window.innerWidth,ROADWIDTH);		
 	
-	var roadPicker = getRndInteger(0,3)
-	
+	var roadPicker = getRndInteger(0,3);
+	var creatVehicle = getRndInteger(0,100);// used for staggering the amount of time vehicles appear on their road/track 
+
 	// determine if there is a free road or track and if so randomly add a new vehicle
-	if(positions.road0==null && roadPicker==0){		
+	if(positions.road0==null && roadPicker==0 && creatVehicle==0){
 		positions.road0 = pickOneRandomCar(roadPicker);
 	}
-	if(positions.road1==null && roadPicker==1){	
+	if(positions.road1==null && roadPicker==1 && creatVehicle==0){	
 		positions.road1 = pickOneRandomCar(roadPicker);
 	}
-	if(positions.road2==null && roadPicker==2){
+	if(positions.road2==null && roadPicker==2 && creatVehicle==0){
 		positions.road2 = pickOneRandomCar(roadPicker);
 	}
-	if(positions.track == null && roadPicker==3){
-		positions.track = new vehicle(trainImgRight, c.width, positions.trackY,trainImgRight.width,-10);
+	if(positions.track == null && roadPicker==3 && creatVehicle==0){
+		positions.track = new vehicle(trainImgRight, globalCanvas.width, positions.trackY,trainImgRight.width,-25);
 	}
 	
 	// render cars and train
-	if(positions.road0!=null && positions.road0.offscreen == false)
+	if(positions.road0!=null && positions.road0.visible == false)
 		positions.road0.draw();
 	else
 		positions.road0=null;
-	if(positions.road1!=null && positions.road1.offscreen == false)	
+	if(positions.road1!=null && positions.road1.visible == false)	
 		positions.road1.draw();
 	else
 		positions.road1=null;
-	if(positions.road2!=null && positions.road2.offscreen == false)
+	if(positions.road2!=null && positions.road2.visible == false)
 		positions.road2.draw();
 	else
 		positions.road2=null;
-	if(positions.track!=null && positions.track.offscreen == false)
+	if(positions.track!=null && positions.track.visible == false)
 		positions.track.draw();
 	else
 		positions.track=null;
+		
+	// collision detection
+	if(positions.road0 != null){
+		
+	}
 	
-	if(getRndInteger(1,10) == 7){		
-		for(var i=0;i<boozePositions.boozeLocs.length;i++){
-			if(boozePositions.boozeLocs[i].lifespan == 0){
-				boozePositions.boozeLocs[i].reInit();
-			}
+	// loop through and find out if the boozes are at the end of their 
+	// life and redraw in a different location
+	//if(getRndInteger(1,10) == 7){	// not sure why I did this random...
+	for(var i=0;i<boozePositions.boozeLocs.length;i++){
+		if(boozePositions.boozeLocs[i].lifespan == 0){
+			boozePositions.boozeLocs[i].reInit();
 		}
 	}
-		
+	//}
+	
+	// draw each booze and decrement it's lifespan
 	for(var i=0;i<boozePositions.boozeLocs.length;i++){
 		if(boozePositions.boozeLocs[i].lifespan > 0){
 			boozePositions.boozeLocs[i].draw();
@@ -152,7 +187,7 @@ function animate(){
 	
 	myCharacter.draw();
 	
-	ctx.stroke();
+	globalContext.stroke();
 }
 
 animate();
@@ -161,9 +196,9 @@ animate();
  * object to store info about the road positions and which vehicles are running on which road
 */
 function roadPositions(){
-	this.trackY = 300;	
+	this.trackY = 300;
 	this.roadY0 = 100;	
-	this.roadY1 = 600;
+	this.roadY1 = 500;
 	this.roadY2 = 750;
 
 	// references intended to store instances of vehicle objects so we know the road is in use
@@ -198,23 +233,23 @@ function boozePositions(){
 function pickOneRandomCar(road){
 	var carPicker = getRndInteger(0,9);
 	if(carPicker == 0)
-		return new vehicle(teslaImgRight, c.width, positions["roadY"+road],100,-getRndInteger(3,10));
+		return new vehicle(teslaImgRight, globalCanvas.width, positions["roadY"+road],100,-getRndInteger(3,10));
 	if(carPicker == 1)
 		return new vehicle(teslaImgLeft, 0, positions["roadY"+road],100,getRndInteger(3,10));
 	if(carPicker == 2)
-		return new vehicle(chevyImgRight, c.width, positions["roadY"+road],100,-getRndInteger(1,5));
+		return new vehicle(chevyImgRight, globalCanvas.width, positions["roadY"+road],100,-getRndInteger(1,5));
 	if(carPicker == 3)
 		return new vehicle(chevyImgLeft, 0, positions["roadY"+road],100,getRndInteger(1,5));
 	if(carPicker == 4)
-		return new vehicle(jeepImgRight, c.width, positions["roadY"+road],100,-getRndInteger(1,7));
+		return new vehicle(jeepImgRight, globalCanvas.width, positions["roadY"+road],100,-getRndInteger(1,7));
 	if(carPicker == 5)
 		return new vehicle(jeepImgLeft, 0, positions["roadY"+road],100,getRndInteger(1,7));
 	if(carPicker == 6)
-		return new vehicle(ferarriImgRight, c.width, positions["roadY"+road],150,-getRndInteger(7,15));
+		return new vehicle(ferarriImgRight, globalCanvas.width, positions["roadY"+road],150,-getRndInteger(7,15));
 	if(carPicker == 7)
 		return new vehicle(ferarriImgLeft, 0, positions["roadY"+road],150,getRndInteger(7,15));
 	if(carPicker == 8)
-		return new vehicle(truckImgRight, c.width, positions["roadY"+road],300,-getRndInteger(3,10));
+		return new vehicle(truckImgRight, globalCanvas.width, positions["roadY"+road],300,-getRndInteger(3,10));
 	if(carPicker == 9)
 		return new vehicle(truckImgLeft, 0, positions["roadY"+road],300,getRndInteger(3,10));
 }
@@ -242,7 +277,7 @@ function drawTrack(){
 	var trackSegments=window.innerWidth/track.width;
 	var offSet=0;
 	for (var i=0;i<trackSegments;i++){
-		ctx.drawImage(track,offSet,300,track.width,ROADWIDTH);
+		globalContext.drawImage(track,offSet,300,track.width,ROADWIDTH);
 		offSet += track.width;
 	}	
 }
