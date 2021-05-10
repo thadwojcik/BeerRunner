@@ -19,6 +19,22 @@ function vehicle(img,x, y, width, speed){
 	this.dx = speed;
 	this.visible = false;
 		
+	this.getVehicleLeftBorder = function(){
+		return this.x - (width/2);
+	}
+
+	this.getVehicleRightBorder = function(){
+		return this.x + (width/2);
+	}
+
+	this.getVehicleTopBorder = function(){
+		return this.y - (GLOBAL_ROADWIDTH/2);
+	}
+
+	this.getVehicleBottomBorder = function(){
+		return this.y + (GLOBAL_ROADWIDTH/2);
+	}
+
 	this.draw = function(){
 		//if within the 'game board' then draw away  
 		if((speed > 0 && this.x < globalCanvas.width) 
@@ -75,7 +91,7 @@ function character(leftImg, rightImg, x, y){
 	
 	this.x=x;
 	this.y=y;
-	this.direction = "left";
+	this.direction = globalDirection.LEFT;
 	// these arrays hold the individual frames of the sprite
 	this.leftSpriteArray=[];
 	this.rightSpriteArray=[];
@@ -94,7 +110,7 @@ function character(leftImg, rightImg, x, y){
 		runningHeight+=spriteHeight;
 		runningWidth=0;
 	}
-	
+		
 	this.getFrameWidth = function(){
 		//should match our renderWidth = 100;
 		return 100;
@@ -105,10 +121,26 @@ function character(leftImg, rightImg, x, y){
 		return 160;
 	}
 	
+	this.getSpriteLeftBorder = function(){
+		return this.x - (renderWidth/2);
+	}
+	
+	this.getSpriteRightBorder = function(){
+		return this.x + (renderWidth/2);
+	}
+
+	this.getSpriteTopBorder = function(){
+		return this.y - (renderHeight/2);
+	}
+
+	this.getSpriteBottomBorder = function(){
+		return this.y + (renderHeight/2);
+	}
+
 	this.draw = function(){		
 		globalContext.beginPath();	
 
-		if(this.direction==="left"){
+		if(this.direction===globalDirection.LEFT){
 
 			if(this.leftSpriteArray.length == this.currentFrameIndex){
 				this.currentFrameIndex = 0;
