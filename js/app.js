@@ -9,7 +9,15 @@ globalCanvas.width = window.innerWidth;
 globalCanvas.height = window.innerHeight;
 var globalContext = globalCanvas.getContext("2d");
 
-const ROADWIDTH = 100;
+
+const GLOBAL_ROADWIDTH = 100;
+
+/* direction enumeration */
+const globalDirection =
+{
+	LEFT: "left",
+	RIGHT: "right"
+}
 
 
 // initialize sprites
@@ -57,8 +65,8 @@ window.addEventListener("keydown", function(e) {
         e.preventDefault();
     }	
   if(keyName == "ArrowLeft"){
-	if(myCharacter.direction != "left"){
-		myCharacter.direction = "left";
+	if(myCharacter.direction != globalDirection.LEFT){
+		myCharacter.direction = globalDirection.LEFT;
 		myCharacter.currentFrameIndex = 0;
 	}
 	else{		
@@ -73,8 +81,8 @@ window.addEventListener("keydown", function(e) {
 	}			
   }
   if(keyName == "ArrowRight"){
-	if(myCharacter.direction != "right"){
-		myCharacter.direction = "right";
+	if(myCharacter.direction != globalDirection.RIGHT){
+		myCharacter.direction = globalDirection.RIGHT;
 		myCharacter.currentFrameIndex = 0;
 	}
 	else{		
@@ -122,10 +130,10 @@ function animate(){
 	requestAnimationFrame(animate);
 	globalContext.clearRect(0,0,innerWidth,innerHeight);
 	
-	globalContext.drawImage(road,0,positions.roadY0,window.innerWidth,ROADWIDTH);
+	globalContext.drawImage(road,0,positions.roadY0,window.innerWidth,GLOBAL_ROADWIDTH);
 	drawTrack();
-	globalContext.drawImage(road,0,positions.roadY1,window.innerWidth,ROADWIDTH);
-	globalContext.drawImage(road,0,positions.roadY2,window.innerWidth,ROADWIDTH);		
+	globalContext.drawImage(road,0,positions.roadY1,window.innerWidth,GLOBAL_ROADWIDTH);
+	globalContext.drawImage(road,0,positions.roadY2,window.innerWidth,GLOBAL_ROADWIDTH);		
 	
 	var roadPicker = getRndInteger(0,3);
 	var creatVehicle = getRndInteger(0,100);// used for staggering the amount of time vehicles appear on their road/track 
@@ -161,11 +169,7 @@ function animate(){
 		positions.track.draw();
 	else
 		positions.track=null;
-		
-	// collision detection
-	if(positions.road0 != null){
-		
-	}
+			
 	
 	// loop through and find out if the boozes are at the end of their 
 	// life and redraw in a different location
@@ -201,6 +205,10 @@ function roadPositions(){
 	this.roadY1 = 500;
 	this.roadY2 = 750;
 
+	this.getTrackYPos = function()
+	{
+		return 100;
+	}
 	// references intended to store instances of vehicle objects so we know the road is in use
 	this.road0 = null;
 	this.road1 = null;
@@ -277,7 +285,7 @@ function drawTrack(){
 	var trackSegments=window.innerWidth/track.width;
 	var offSet=0;
 	for (var i=0;i<trackSegments;i++){
-		globalContext.drawImage(track,offSet,300,track.width,ROADWIDTH);
+		globalContext.drawImage(track,offSet,300,track.width,GLOBAL_ROADWIDTH);
 		offSet += track.width;
 	}	
 }
