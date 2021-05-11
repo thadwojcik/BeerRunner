@@ -9,9 +9,6 @@ globalCanvas.width = window.innerWidth;
 globalCanvas.height = window.innerHeight;
 var globalContext = globalCanvas.getContext("2d");
 
-
-const GLOBAL_ROADWIDTH = 100;
-
 /* direction enumeration */
 const globalDirection =
 {
@@ -44,8 +41,8 @@ var mug = document.getElementById("mug");
 var tequila = document.getElementById("tequila");
 var whiskey = document.getElementById("whiskey");
 
-var road = document.getElementById("road");
-var track = document.getElementById("track");
+var roadImg = document.getElementById("road");
+var trackImg = document.getElementById("track");
 var positions = new roadPositions();
 var boozePositions = new boozePositions();
 
@@ -88,8 +85,7 @@ window.addEventListener("keydown", function(e) {
 	else{		
 		myCharacter.currentFrameIndex++;
 	}
-
-	var foo = myCharacter.getFrameWidth();
+	
 	if((myCharacter.x + myCharacter.getFrameWidth())>=globalCanvas.width){
 		// intentionally left blank to be consistent with coding in the "ArrowLeft" if block
 	}
@@ -125,61 +121,44 @@ window.addEventListener("keydown", function(e) {
  
 /******************************
  * main game loop
-*/
+*******************************/
 function animate(){
 	requestAnimationFrame(animate);
 	globalContext.clearRect(0,0,innerWidth,innerHeight);
-	
-	globalContext.drawImage(road,0,positions.roadY0,window.innerWidth,GLOBAL_ROADWIDTH);
-	drawTrack();
-	globalContext.drawImage(road,0,positions.roadY1,window.innerWidth,GLOBAL_ROADWIDTH);
-	globalContext.drawImage(road,0,positions.roadY2,window.innerWidth,GLOBAL_ROADWIDTH);		
-	
-	var roadPicker = getRndInteger(0,3);
-	var creatVehicle = getRndInteger(0,100);// used for staggering the amount of time vehicles appear on their road/track 
+		
+	var createVehicle = getRndInteger(0,100);// used for staggering the amount of time vehicles appear on their road/track 
 
-	// determine if there is a free road or track and if so randomly add a new vehicle
-	if(positions.road0==null && roadPicker==0 && creatVehicle==0){
-		positions.road0 = pickOneRandomCar(roadPicker);
-	}
-	if(positions.road1==null && roadPicker==1 && creatVehicle==0){	
-		positions.road1 = pickOneRandomCar(roadPicker);
-	}
-	if(positions.road2==null && roadPicker==2 && creatVehicle==0){
-		positions.road2 = pickOneRandomCar(roadPicker);
-	}
-	if(positions.track == null && roadPicker==3 && creatVehicle==0){
-		positions.track = new vehicle(trainImgRight, globalCanvas.width, positions.trackY,trainImgRight.width,-25);
+	for(var i=0;i<positions.roads.length;i++){
+		positions.roads[i].draw();
+		// determine if there is a free road and if so randomly add a new vehicle
+		if(positions.roads[i].currVehicle == null && createVehicle==0){
+			positions.roads[i].currVehicle = pickOneRandomCar(positions.roads[i].y);
+		}
+		// render cars
+		if(positions.roads[i].currVehicle !=null && positions.roads[i].currVehicle.visible == false)
+			positions.roads[i].currVehicle.draw();
+		else
+			positions.roads[i].currVehicle=null;
 	}
 	
-	// render cars and train
-	if(positions.road0!=null && positions.road0.visible == false)
-		positions.road0.draw();
+	createVehicle = getRndInteger(0,200);
+	// render train
+	positions.trainTrack.draw();
+	if(positions.trainTrack.currVehicle == null && createVehicle==0){
+		positions.trainTrack.currVehicle = new vehicle(trainImgRight, globalCanvas.width, positions.trainTrack.y,trainImgRight.width,-25);
+	}
+	if(positions.trainTrack.currVehicle!=null && positions.trainTrack.currVehicle.visible == false)
+		positions.trainTrack.currVehicle.draw();
 	else
-		positions.road0=null;
-	if(positions.road1!=null && positions.road1.visible == false)	
-		positions.road1.draw();
-	else
-		positions.road1=null;
-	if(positions.road2!=null && positions.road2.visible == false)
-		positions.road2.draw();
-	else
-		positions.road2=null;
-	if(positions.track!=null && positions.track.visible == false)
-		positions.track.draw();
-	else
-		positions.track=null;
-			
+		positions.trainTrack.currVehicle=null;
 	
 	// loop through and find out if the boozes are at the end of their 
-	// life and redraw in a different location
-	//if(getRndInteger(1,10) == 7){	// not sure why I did this random...
+	// life and redraw in a different location	
 	for(var i=0;i<boozePositions.boozeLocs.length;i++){
 		if(boozePositions.boozeLocs[i].lifespan == 0){
 			boozePositions.boozeLocs[i].reInit();
 		}
-	}
-	//}
+	}	
 	
 	// draw each booze and decrement it's lifespan
 	for(var i=0;i<boozePositions.boozeLocs.length;i++){
@@ -199,21 +178,15 @@ animate();
 /******************************
  * object to store info about the road positions and which vehicles are running on which road
 */
-function roadPositions(){
-	this.trackY = 300;
-	this.roadY0 = 100;	
-	this.roadY1 = 500;
-	this.roadY2 = 750;
-
-	this.getTrackYPos = function()
-	{
-		return 100;
-	}
-	// references intended to store instances of vehicle objects so we know the road is in use
-	this.road0 = null;
-	this.road1 = null;
-	this.road2 = null;
-	this.track = null;	
+function roadPositions(){	
+	// references intended to store instances of vehicle objects so we know the road is in use	
+	this.roads = [];
+	this.trainTrack = new track(trackImg,300);
+	
+	this.roads.push(new road(roadImg,100));
+	this.roads.push(new road(roadImg,500));
+	this.roads.push(new road(roadImg,750));
+	
 }
 
 /******************************
@@ -238,28 +211,28 @@ function boozePositions(){
 /******************************
  * pick a single vehicle at random - will create a new vehicle object and assign it a "road" (i.e. the y position)
 */
-function pickOneRandomCar(road){
+function pickOneRandomCar(yPos){
 	var carPicker = getRndInteger(0,9);
 	if(carPicker == 0)
-		return new vehicle(teslaImgRight, globalCanvas.width, positions["roadY"+road],100,-getRndInteger(3,10));
+		return new vehicle(teslaImgRight, globalCanvas.width, yPos,100,-getRndInteger(3,10));
 	if(carPicker == 1)
-		return new vehicle(teslaImgLeft, 0, positions["roadY"+road],100,getRndInteger(3,10));
+		return new vehicle(teslaImgLeft, 0, yPos,100,getRndInteger(3,10));
 	if(carPicker == 2)
-		return new vehicle(chevyImgRight, globalCanvas.width, positions["roadY"+road],100,-getRndInteger(1,5));
+		return new vehicle(chevyImgRight, globalCanvas.width, yPos,100,-getRndInteger(1,5));
 	if(carPicker == 3)
-		return new vehicle(chevyImgLeft, 0, positions["roadY"+road],100,getRndInteger(1,5));
+		return new vehicle(chevyImgLeft, 0, yPos,100,getRndInteger(1,5));
 	if(carPicker == 4)
-		return new vehicle(jeepImgRight, globalCanvas.width, positions["roadY"+road],100,-getRndInteger(1,7));
+		return new vehicle(jeepImgRight, globalCanvas.width, yPos,100,-getRndInteger(1,7));
 	if(carPicker == 5)
-		return new vehicle(jeepImgLeft, 0, positions["roadY"+road],100,getRndInteger(1,7));
+		return new vehicle(jeepImgLeft, 0, yPos,100,getRndInteger(1,7));
 	if(carPicker == 6)
-		return new vehicle(ferarriImgRight, globalCanvas.width, positions["roadY"+road],150,-getRndInteger(7,15));
+		return new vehicle(ferarriImgRight, globalCanvas.width, yPos,150,-getRndInteger(7,15));
 	if(carPicker == 7)
-		return new vehicle(ferarriImgLeft, 0, positions["roadY"+road],150,getRndInteger(7,15));
+		return new vehicle(ferarriImgLeft, 0, yPos,150,getRndInteger(7,15));
 	if(carPicker == 8)
-		return new vehicle(truckImgRight, globalCanvas.width, positions["roadY"+road],300,-getRndInteger(3,10));
+		return new vehicle(truckImgRight, globalCanvas.width, yPos,300,-getRndInteger(3,10));
 	if(carPicker == 9)
-		return new vehicle(truckImgLeft, 0, positions["roadY"+road],300,getRndInteger(3,10));
+		return new vehicle(truckImgLeft, 0, yPos,300,getRndInteger(3,10));
 }
 
 function pickOneRandomBooze(){
@@ -277,18 +250,6 @@ function pickOneRandomBooze(){
 		return new booze(whiskey,25,30,50);
 }
 
-/******************************
- * draw the train track - special logic used to draw segments instead of stretching the track
- * since that caused distortion of the image
-*/
-function drawTrack(){
-	var trackSegments=window.innerWidth/track.width;
-	var offSet=0;
-	for (var i=0;i<trackSegments;i++){
-		globalContext.drawImage(track,offSet,300,track.width,GLOBAL_ROADWIDTH);
-		offSet += track.width;
-	}	
-}
 
 /******************************
  * generate a random integer 
