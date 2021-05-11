@@ -4,6 +4,44 @@ This file contains the various objects used to maintain data on the screen
 
 
 /******************************
+ * Road object - defines how the road should look
+ *  
+ */
+ function road(img, yPos){
+	const ROADWIDTH = 100;
+	this.y = yPos;
+	this.img = img;
+	this.currVehicle = null;
+
+	this.draw = function(){
+		globalContext.drawImage(this.img,0,this.y,window.innerWidth,ROADWIDTH);
+	}
+}
+
+/******************************
+ * Track object - similar to the road but 
+ *  maintains the train track in the game
+ *  
+ */
+function track(img,yPos){
+	const TRACKWIDTH = 100;
+	this.y = yPos;
+	this.img = img;
+	this.currVehicle = null;
+
+	// draw the train track - special logic used to draw segments instead of stretching the track
+ 	// since that caused distortion of the image
+	this.draw = function(){
+		var trackSegments=window.innerWidth/this.img.width;
+		var offSet=0;
+		for (var i=0;i<trackSegments;i++){
+			globalContext.drawImage(this.img,offSet,300,this.img.width,TRACKWIDTH);
+			offSet += this.img.width;
+		}	
+	}
+}
+
+/******************************
  * vehicle object - maintains state of the various vehicles and renders them on the page 
  * img: the image to renders
  * x: initial x position
@@ -38,9 +76,9 @@ function vehicle(img,x, y, width, speed){
 	this.draw = function(){
 		//if within the 'game board' then draw away  
 		if((speed > 0 && this.x < globalCanvas.width) 
-			 || (speed < 0 && this.x+img.width > 0)){
+			 || (speed < 0 && this.x+this.carImg.width > 0)){
 				globalContext.beginPath();
-				globalContext.drawImage(img,this.x,this.y, this.width,100);
+				globalContext.drawImage(this.carImg,this.x,this.y, this.width,100);
 				globalContext.stroke();
 				this.x += this.dx;
 		}
