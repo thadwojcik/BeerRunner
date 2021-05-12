@@ -168,6 +168,8 @@ function animate(){
 		}		
 	}
 	
+	// collision detection
+	
 	myCharacter.draw();
 	
 	globalContext.stroke();
